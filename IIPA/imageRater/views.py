@@ -37,7 +37,7 @@ def rate_image(request):
             a.save()
             return HttpResponseRedirect(f"/ratings/{i.uuid}")  # type: ignore
         else:
-            return HttpResponseBadRequest(request)
+            return render(request, "imageRater/rater.html", status=400)
     else:
         form = ImageRatingForm()
         return render(request, "imageRater/rater.html", {"form": form})

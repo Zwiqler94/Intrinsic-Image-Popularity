@@ -45,7 +45,7 @@ config = Config(
 # logger.debug(f"\n\n\n\n config \n\n\n\n{config}\n\n\n\n\n\n\n")
 print(
     f"\n\n\n\n config \n\n\n\n{os.environ.get('AWS_SECRET_KEY','Not Found')}\n\n\n\n\n\n\n"
-)
+) if os.environ.get("DEBUG") == "True" else False
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -87,13 +87,15 @@ SERVICE_URL_TAGS = (
 )
 
 logger.debug(f"GCP MODE: {GCP_DEV}")
-print(f"GCP MODE: {GCP_DEV}")
+print(f"GCP MODE: {GCP_DEV}") if os.environ.get("DEBUG") == "True" else False
 
-print(os.environ.keys())
+print(os.environ.keys()) if os.environ.get("DEBUG") == "True" else False
 logger.debug(os.environ.keys())
 
 logger.debug(f"SERVICE_URL_TAGS: {SERVICE_URL_TAGS}")
-print(f"SERVICE_URL_TAGS: {SERVICE_URL_TAGS}")
+print(f"SERVICE_URL_TAGS: {SERVICE_URL_TAGS}") if os.environ.get(
+    "DEBUG"
+) == "True" else False
 
 with open("../unformatted_cred.json", "r") as fileObj:
     keyHeader = "-----BEGIN PRIVATE KEY-----"
@@ -131,14 +133,16 @@ with open(os.path.join(os.getcwd(), "credential.json"), "w") as neep:
     json.dump(keyHeaderIndex, neep)
     neep.close()
 
-print(f'path: {os.path.join(os.getcwd(), "credential.json")}')
+print(f'path: {os.path.join(os.getcwd(), "credential.json")}') if os.environ.get(
+    "DEBUG"
+) == "True" else False
 
 with open(os.path.join(os.getcwd(), "credential.json"), "r") as neep:
     data = json.load(neep)
     neep.close()
 
 logger.debug(data)
-print(f"crede: {data}")
+print(f"crede: {data}") if os.environ.get("DEBUG") == "True" else False
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
     data,
@@ -152,7 +156,7 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
 
 logger.debug(f"credsss: {GS_CREDENTIALS}")
 logger.debug(os.environ)
-print(os.environ)
+print(os.environ) if os.environ.get("DEBUG") == "True" else False
 
 # Attempt to load the Project ID into the environment, safely failing on error.
 try:
@@ -173,7 +177,9 @@ try:
         settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
         name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
         payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
-        print(settings_name + " " + project_id + " " + payload + " ")
+        print(settings_name + " " + project_id + " " + payload + " ") if os.environ.get(
+            "DEBUG"
+        ) == "True" else False
         ENV.read_env(io.StringIO(payload))
         ENV.read_env(env_file, overwrite=True) if LOCAL_DEV else None
     elif os.path.isfile(env_file):
@@ -197,7 +203,7 @@ except google.auth.exceptions.DefaultCredentialsError:  # type: ignore
 
 SECRET_KEY = ENV("SECRET_KEY")
 
-print(ENV("AWS_ACCESS_KEY"))
+print(ENV("AWS_ACCESS_KEY")) if os.environ.get("DEBUG") == "True" else False
 
 client = botocore.session.get_session().create_client(
     "secretsmanager",
@@ -215,7 +221,9 @@ DBSECRET = json.loads(
 
 
 logger.debug(f"\n\n\n secret \n\n\n\n{DBSECRET}\n\n\n\n\n\n\n")
-print(f"\n\n\n secret \n\n\n\n{DBSECRET.get('password')}\n\n\n\n\n\n\n")
+print(
+    f"\n\n\n secret \n\n\n\n{DBSECRET.get('password')}\n\n\n\n\n\n\n"
+) if os.environ.get("DEBUG") == "True" else False
 
 # BOOTSTRAP5_FOLDER = os.path.abspath(os.path.join(BASE_DIR, "..", "django_bootstrap5"))
 # if BOOTSTRAP5_FOLDER not in sys.path:
@@ -390,7 +398,9 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 # Define static storage via django-storages[google]
 GS_BUCKET_NAME = ENV("GS_BUCKET_NAME")
-print(f"storage: {GS_BUCKET_NAME}, cred: {GS_CREDENTIALS}")
+print(f"storage: {GS_BUCKET_NAME}, cred: {GS_CREDENTIALS}") if os.environ.get(
+    "DEBUG"
+) == "True" else False
 if GS_BUCKET_NAME == "local":
     STATIC_URL = "static/"
     STATIC_ROOT = "static/"
