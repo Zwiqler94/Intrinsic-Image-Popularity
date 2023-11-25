@@ -1,0 +1,17 @@
+.rater-form {
+    margin: 3rem;
+    min-width: 20rem;
+    max-width: 80vw;
+}
+
+[data-bs-theme=dark] {
+  color: var(--bs-primary-text-emphasis);
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: var(--bs-primary-text-emphasis);
+    background-color: var(--bs-primary-bg-subtle);
+  }
+}
