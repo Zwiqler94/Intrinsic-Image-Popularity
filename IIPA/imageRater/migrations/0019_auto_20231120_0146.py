@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("imageRater", "0018_auto_20231120_0059"),
+        ("imageRater", '0018_auto_20231120_0059'),
     ]
 
     operations = [

@@ -344,7 +344,7 @@ WSGI_APPLICATION = "IIPA.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-logger.debug(DBSECRET.get("password"))
+logger.debug(DBSECRET.get("password")) if os.environ.get("DEBUG") == "True" else False
 
 DATABASES = {
     "default": {

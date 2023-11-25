@@ -30,7 +30,7 @@ def gen_ratings(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("imageRater", "0019_auto_20231120_0146"),
+        ("imageRater", '0019_auto_20231120_0146'),
     ]
 
     operations = [
