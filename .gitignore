@@ -19,3 +19,5 @@ results.json
 skaffold.yaml
 unformatted_cred.json
 x.json
+old_stuff
+images/xyz.dng

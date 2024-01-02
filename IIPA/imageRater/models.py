@@ -19,3 +19,12 @@ class ImageRatingForm(forms.ModelForm):
     class Meta:
         model = ImageRating
         fields = ["image"]
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image", False)
+        if image:
+            if image.__sizeof__() > 15 * 1024 * 1024:
+                raise forms.ValidationError("Image file too large ( > 15mb )")
+            return image
+        else:
+            raise forms.ValidationError("Couldn't read uploaded image")

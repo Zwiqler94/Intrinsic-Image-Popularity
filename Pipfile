@@ -33,6 +33,7 @@ botocore = "*"
 psycopg2 = "*"
 django-bootstrap5 = "*"
 python-dotenv = "*"
+pydngconverter = "*"
 
 [dev-packages]
 autopep8 = "*"

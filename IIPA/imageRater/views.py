@@ -1,10 +1,14 @@
-import os
-from django.shortcuts import render
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
-from .rateImage import rateImagesApp
+# -*- coding: utf-8 -*-
+from fileinput import filename
+from .rateImage import rateImagesApp, convertDNGtoJPEG
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
-
+from PIL import Image
+import os
+from pydngconverter import DNGConverter, flags
 
 import logging
 
@@ -21,9 +25,18 @@ def rate_image(request):
     if request.method == "POST":
         logger.debug(request.FILES)
         form = ImageRatingForm(request.POST, request.FILES)
+        file = form.files["image"]
+        fileName, fileExt = os.path.splitext(file.name)
+        if fileExt in [".dng", ".DNG"]:
+            path = convertDNGtoJPEG(os.path.abspath(file.name))
+            with open(path, "r") as neep:
+                form.files["images"] = InMemoryUploadedFile(
+                    neep, "image", file.name, "image/png", neep.__sizeof__(), None
+                )
         logger.debug(form.data)
         logger.debug(form.errors)
         if form.is_valid():
+            # form.clean_image()
             i = form.save()
             a = ImageRating.objects.get(uuid=i.uuid)
             logger.debug("A URL: " + i.image.url)
@@ -32,12 +45,12 @@ def rate_image(request):
             )
             a.url = i.image.url
             a.rated_img_name = i.image.name
-            a.rated_value = float(a.rating_obj.get(i.image.url))
+            a.rated_value = float(a.rating_obj.get(i.image.url)) # type: ignore
             logger.debug("rating: " + str(a.rated_value))
             a.save()
-            return HttpResponseRedirect(f"/ratings/{i.uuid}")  # type: ignore
+            return HttpResponseRedirect(f"/{i.uuid}")  # type: ignore
         else:
-            return render(request, "imageRater/rater.html", status=400)
+            return render(request, "imageRater/rater.html", {"form": form}, status=400)
     else:
         form = ImageRatingForm()
         return render(request, "imageRater/rater.html", {"form": form})

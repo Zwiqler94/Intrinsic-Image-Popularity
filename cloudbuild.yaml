@@ -9,8 +9,7 @@ steps:
         "LOCAL_DEV=False",
         "GCP_DEV=True",
         "PYTHONUNBUFFERED=True",
-        # "AAKEY=$AWS_ACCESS_KEY",
-        # "ASKEY=$AWS_SECRET_KEY",
+        "CLOUDRUN_SERVICE_URL=${_CLOUDRUN_SERVICE_URL}"
       ]
     secretEnv: ["AWS_ACCESS_KEY", "AWS_SECRET_KEY"]
     args: [
@@ -28,6 +27,57 @@ steps:
         "--verbosity=trace",
         "--cleanup",
       ]
+  - id: "collect static"
+    name: "gcr.io/google-appengine/exec-wrapper"
+    env:
+      [
+        "DEBUG=False",
+        "LOCAL_DEV=False",
+        "GCP_DEV=True",
+        "PYTHONUNBUFFERED=True",
+        "CLOUDRUN_SERVICE_URL=${_CLOUDRUN_SERVICE_URL}"
+      ]
+    secretEnv: ["DJANGO_SETTINGS", "AWS_ACCESS_KEY", "AWS_SECRET_KEY"]
+    args:
+      [
+        "-i",
+        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest",
+        "-e",
+        "SETTINGS_NAME=${_SECRET_SETTINGS_NAME}",
+        "-e",
+        "GCP_DEV=True",
+        "-e",
+        "AWS_ACCESS_KEY",
+        "-e",
+        "AWS_SECRET_KEY",
+        "--",
+        "pipenv",
+        "run",
+        "../.venv/bin/python",
+        "/iipa-workspace/IIPA/manage.py",
+        "collectstatic",
+        "--verbosity",
+        "2",
+        "--noinput",
+      ]
+availableSecrets:
+  secretManager:
+    - versionName: projects/107006238575/secrets/AWS_ACCESS_KEY/versions/latest
+      env: "AWS_ACCESS_KEY"
+    - versionName: projects/107006238575/secrets/AWS_SECRET_KEY/versions/latest
+      env: "AWS_SECRET_KEY"
+    - versionName: projects/107006238575/secrets/django_settings/versions/latest
+      env: "DJANGO_SETTINGS"
+substitutions:
+  _SERVICE_NAME: iipa
+  _SECRET_SETTINGS_NAME: django_settings
+  _SERVICE_URL_TAGS: fake
+  _CLOUDRUN_SERVICE_URL: ''
+options:
+  dynamicSubstitutions: true
+  automapSubstitutions: true
+images: ["gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest"]
+
   # - id: "push image"
   #   name: "gcr.io/cloud-builders/docker"
   #   args: ["push", "gcr.io/$PROJECT_ID/${_SERVICE_NAME}"]
@@ -103,51 +153,3 @@ steps:
   #       "createsuperuser",
   #       "--noinput",
   #     ]
-  - id: "collect static"
-    name: "gcr.io/google-appengine/exec-wrapper"
-    env:
-      [
-        "DEBUG=False",
-        "LOCAL_DEV=False",
-        "GCP_DEV=True",
-        "PYTHONUNBUFFERED=True",
-      ]
-    secretEnv: ["DJANGO_SETTINGS", "AWS_ACCESS_KEY", "AWS_SECRET_KEY"]
-    args:
-      [
-        "-i",
-        "gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest",
-        "-e",
-        "SETTINGS_NAME=${_SECRET_SETTINGS_NAME}",
-        "-e",
-        "GCP_DEV=True",
-        "-e",
-        "AWS_ACCESS_KEY",
-        "-e",
-        "AWS_SECRET_KEY",
-        "--",
-        "pipenv",
-        "run",
-        "../.venv/bin/python",
-        "/iipa-workspace/IIPA/manage.py",
-        "collectstatic",
-        "--verbosity",
-        "2",
-        "--noinput",
-      ]
-availableSecrets:
-  secretManager:
-    - versionName: projects/107006238575/secrets/AWS_ACCESS_KEY/versions/latest
-      env: "AWS_ACCESS_KEY"
-    - versionName: projects/107006238575/secrets/AWS_SECRET_KEY/versions/latest
-      env: "AWS_SECRET_KEY"
-    - versionName: projects/107006238575/secrets/django_settings/versions/latest
-      env: "DJANGO_SETTINGS"
-substitutions:
-  _SERVICE_NAME: iipa
-  _SECRET_SETTINGS_NAME: django_settings
-  _SERVICE_URL_TAGS: fake
-options:
-  dynamicSubstitutions: true
-  automapSubstitutions: true
-images: ["gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest"]

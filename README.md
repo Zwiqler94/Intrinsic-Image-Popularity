@@ -7,4 +7,6 @@ This is a PyTorch implementation of the paper [Intrinsic Image Popularity Assess
 ## CLI Script
 Run `python src/rateImage.py -path <path-to-directory> -e <image-ext>` to evaluate the intrinsic image popularity of your photos on Instagram.
 
-## API 
+## TO Run
+
+Follow the cloudbuild.yaml file

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+
+{% load django_bootstrap5 %} 
+{% load static %} 
+{% bootstrap_css %} 
+{% bootstrap_javascript %}
+
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}" />
+<link rel="stylesheet" href="{% static 'imageRater/styles.css' %}" />
+
+
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title> {% block title %} Intrinsic Image Popularity Assesment App! {% endblock %}</title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7668256718856123"
+     crossorigin="anonymous"></script>
+  </head>
+  <body>
+    {% block content %}{% endblock %}
+  </body>
+</html>

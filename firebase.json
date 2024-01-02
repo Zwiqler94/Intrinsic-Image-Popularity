@@ -2,9 +2,10 @@
   "hosting": {
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    
     "rewrites": [
       {
-        "source": "/iipa/**",
+        "source": "/",
         "run": {
           "serviceId": "iipa",
           "region": "us-central1",
@@ -12,5 +13,13 @@
         }
       }
     ]
+  },
+  "emulators": {
+    "hosting": {
+      "port": 5014
+    },
+    "ui": {
+      "enabled": true
+    }
   }
 }

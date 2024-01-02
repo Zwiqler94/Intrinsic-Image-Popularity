@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
+from asgiref.sync import async_to_sync
+from django.conf import settings
+from google.cloud import storage
+from io import BytesIO
+from PIL import Image
+from pydngconverter import DNGConverter, flags
+from urllib.request import urlopen
 import argparse
-import json
 import os
 import sys
 import torch
 import torchvision.models
 import torchvision.transforms as transforms
-from PIL import Image
-from django.conf import settings
-from urllib.request import urlopen
-from io import BytesIO
-from google.cloud import storage
+
 
 import logging
 
@@ -23,7 +25,7 @@ logger.debug(
     f'path: {os.path.join(os.getcwd(), "credential.json")}, creds: {settings.GS_CREDENTIALS}'
 )
 # logger.debug(f'GCP MODE: {settings.GCP_DEV}, su: {os.environ.get("DJANGO_SUPERUSER_PASSWORD")}, {os.environ.get("DJANGO_SUPERUSER_USERNAME")}')
-
+logger.debug(f"\n\n\nCSRF_ONLY:{settings.CSRF_COOKIE_SECURE} \n\n\n")
 
 popularityDictionary = {}
 
@@ -89,9 +91,9 @@ def rateImages(model, paths):
     for path in paths:
         if os.path.isfile(path):
             fileName, fileExtension = os.path.splitext(path)
-        if args.ext == fileExtension:
+        if args.ext == fileExtension:  # type: ignore
             image = Image.open(path)
-            popularityDictionary[fileName] = predict(image, model)
+            popularityDictionary[fileName] = predict(image, model)  # type: ignore
 
 
 def setUpModelApp(modelPath):
@@ -103,9 +105,75 @@ def setUpModelApp(modelPath):
     model.eval().to(device)
     with open(os.path.join(os.getcwd(), "state_dict.txt"), "w") as neep:
         for tensor in model.state_dict():
-            neep.write(f'{tensor}: {model.state_dict()[tensor]}\n')
+            neep.write(f"{tensor}: {model.state_dict()[tensor]}\n")
         neep.close()
     return model
+
+
+def processImage(popularityDictionary, model, path, processedPath):
+    image = Image.open(processedPath)
+    popularityDictionary[path] = predict(image, model)
+    return image
+
+
+def getExtensionAndPath(path):
+    logger.debug("A path:" + path)
+    processedPath = os.path.abspath(os.curdir + "/IIPA/media" + path)
+    logger.debug("A.1 processed path" + processedPath)
+    fileName = None
+    fileExtension = None
+    if os.path.isfile(processedPath):
+        fileName, fileExtension = os.path.splitext(processedPath)
+        logger.debug(fileName, fileExtension)
+    return processedPath, fileExtension
+
+
+def loadModel(modelPath):
+    try:
+        model = setUpModelApp(os.path.abspath(modelPath))
+    except Exception as err:
+        logger.debug(sys.exc_info())
+        raise err
+    logger.debug("post model setup")
+    return model
+
+
+def convertDNGtoJPEG(processedPath):
+    pydng = DNGConverter(processedPath, fast_load=True, debug=True)
+    path = async_to_sync(pydng.convert_file)(log=logger)
+    return path
+
+
+def processImageGCP(popularityDictionary, model, path):
+    logger.debug(path)
+    fileName, fileExtension = os.path.splitext(path)
+    gStorage = storage.Client(credentials=settings.GS_CREDENTIALS)
+    storageObj = gStorage._http.get(path)
+    processedPath = storageObj.content
+    processedUrl = storageObj.url
+    if fileExtension in [".dng", ".DNG"]:
+        path = convertDNGtoJPEG(processedUrl)
+        image = Image.open(path)
+    else:
+        image = Image.open(BytesIO(processedPath))
+    prediction = predict(image, model)
+    logger.debug("prediction: " + str(prediction))
+    popularityDictionary[path] = prediction
+
+
+def processImageLocal(popularityDictionary, model, path):
+    processedPath, fileExtension = getExtensionAndPath(path)
+    if fileExtension != None:
+        image = None
+        if fileExtension in [".jpg", ".jpeg", ".png"]:
+            image = processImage(popularityDictionary, model, path, processedPath)
+        elif fileExtension in [".dng", ".DNG"]:
+            path = convertDNGtoJPEG(processedPath)
+            image = processImage(popularityDictionary, model, path, processedPath)
+        if image != None and settings.DEBUG == True:
+            logger.debug(image)
+            logger.debug(popularityDictionary)
+    
 
 
 def rateImagesApp(imagePath, modelPath):
@@ -113,43 +181,16 @@ def rateImagesApp(imagePath, modelPath):
     try:
         popularityDictionary = {}
         logger.debug(modelPath)
-        try:
-            model = setUpModelApp(os.path.abspath(modelPath))
-        except Exception as err:
-            raise err
-        logger.debug("post model setup")
+        model = loadModel(modelPath)
         for path in imagePath:
-            if settings.LOCAL_DEV and settings.GCP:
-                logger.debug("A path:" + path)
-                processedPath = os.path.abspath(os.curdir + "/IIPA/media" + path)
-                logger.debug("A.1 processed path" + processedPath)
-                fileName = None
-                fileExtension = None
-                if os.path.isfile(processedPath):
-                    fileName, fileExtension = os.path.splitext(processedPath)
-                    logger.debug(fileName, fileExtension)
-                if fileExtension != None:
-                    if fileExtension in [".jpg", ".jpeg", ".png"]:
-                        image = Image.open(processedPath)
-                        logger.debug(image)
-                        popularityDictionary[path] = predict(image, model)
-                        logger.debug(popularityDictionary, "ffff")
-                else:
-                    logger.debug(path + " C")
+            if settings.LOCAL_DEV:
+                processImageLocal(popularityDictionary, model, path)
             else:
-                logger.debug("B not local")
-                logger.debug(path)
-                gStorage = storage.Client(credentials=settings.GS_CREDENTIALS)
-                processedPath = gStorage._http.get(path).content
-
-                image = Image.open(BytesIO(processedPath))
-                # logger.debug("im: " + image.__str__())
-                x = predict(image, model)
-                logger.debug("prediction: " + str(x))
-                popularityDictionary[path] = x
+                processImageGCP(popularityDictionary, model, path)
                 # logger.debug(popularityDictionary.__str__())
             return popularityDictionary
     except Exception as err:
+        logger.debug(sys.exc_info())
         logger.debug(err)
         raise err
 

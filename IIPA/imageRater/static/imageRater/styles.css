@@ -4,6 +4,10 @@
     max-width: 80vw;
 }
 
+.cardy{
+  max-width: 70vw;
+}
+
 [data-bs-theme=dark] {
   color: var(--bs-primary-text-emphasis);
   background-color: var(--bs-primary-bg-subtle);
