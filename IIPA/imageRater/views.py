@@ -45,7 +45,7 @@ def rate_image(request):
             )
             a.url = i.image.url
             a.rated_img_name = i.image.name
-            a.rated_value = float(a.rating_obj.get(i.image.url)) # type: ignore
+            a.rated_value = float(a.rating_obj.get(i.image.url))  # type: ignore
             logger.debug("rating: " + str(a.rated_value))
             a.save()
             return HttpResponseRedirect(f"/{i.uuid}")  # type: ignore
@@ -66,3 +66,8 @@ def post_rate(request, ratingId):
     return render(
         request, "imageRater/post-rate.html", {"rating": round(rating, 2), "url": url}
     )
+
+
+@xframe_options_exempt
+def privacy_policy(request):
+    return render(request, "imageRater/privacy.html")

@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "iipa-32fdd"
-  }
+  },
+  "targets": {
+    "iipa-32fdd": {
+      "hosting": {
+        "iipa-v2": [
+          "pic-pop-predict"
+        ],
+        "iipa-v1": [
+          "iipa-32fdd"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

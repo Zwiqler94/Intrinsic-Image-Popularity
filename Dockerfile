@@ -51,7 +51,7 @@ WORKDIR $APP_HOME/IIPA
 # # RUN python manage.py flush --noinput
 # # RUN python manage.py migrate
 ENV GCP_DEV True
-ENV DEBUG True
+ENV DEBUG False
 ENV LOCAL_ENV False
  
 # RUN pip install --upgrade pip

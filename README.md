@@ -10,3 +10,14 @@ Run `python src/rateImage.py -path <path-to-directory> -e <image-ext>` to evalua
 ## TO Run
 
 Follow the cloudbuild.yaml file
+
+### Env Vars:
+
+- `export SERVICE_URL_TAGS=$(gcloud run services describe iipa  --format "value(status.traffic.tag)")`
+- `export SERVICE_URL=$(gcloud run services describe iipa  --format "value(status.url)")`
+- `export SERVICE_ACCOUNT=$(gcloud run services describe iipa  --format "value(spec.template.spec.serviceAccountName)")`
+- `export DJANGO_SUPERUSER_PASSWORD=$(gcloud secrets versions access latest --secret=superuser_password)`
+
+1. `gcloud builds submit --config cloudbuild.yaml --substitutions _SERVICE_URL_TAGS=$SERVICE_URL_TAGS,_CLOUDRUN_SERVICE_URL=$SERVICE_URL,TAG_NAME=v0.10.5`
+2. `gcloud run deploy iipa --image gcr.io/iipa-32fdd/iipa:latest --service-account $SERVICE_ACCOUNT --set-env-vars DEBUG=False,GCP_DEV=True,SERVICE_URL_TAGS=$SERVICE_URL_TAGS,CLOUDRUN_SERVICE_URL=$SERVICE_URL` 
+3. make sure Firebase Hosting is rewriting reqs correctly

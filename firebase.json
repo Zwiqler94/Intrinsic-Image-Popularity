@@ -1,22 +1,40 @@
 {
-  "hosting": {
-    "public": "public",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    
-    "rewrites": [
-      {
-        "source": "/",
-        "run": {
-          "serviceId": "iipa",
-          "region": "us-central1",
-          "pinTag": true
+  "hosting": [
+    {
+      "target": "iipa-v1",
+      "public": "public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "/**",
+          "run": {
+            "serviceId": "iipa",
+            "region": "us-central1",
+            "pinTag": true
+          }
         }
-      }
-    ]
-  },
+      ]
+    },
+    {
+      "target": "iipa-v2",
+      "public": "public",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "/**",
+          "run": {
+            "serviceId": "iipa",
+            "region": "us-central1",
+            "pinTag": true
+          }
+        }
+      ]
+    }
+  ],
+  
   "emulators": {
     "hosting": {
-      "port": 5014
+      "port": 5670
     },
     "ui": {
       "enabled": true

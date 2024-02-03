@@ -44,7 +44,7 @@ print(
 # SECURITY WARNING: don't run with debug turned on in production!
 # Change this to "False" when you are ready for production
 ENV = environ.Env(
-    CLOUDRUN_SERVICE_URL=(str, ''),
+    CLOUDRUN_SERVICE_URL=(str, ""),
     DEBUG=(bool, True if os.environ.get("DEBUG") == "True" else False),
     GCP_DEV=(bool, True if os.environ.get("GCP_DEV") == "True" else False),
     GS_BUCKET_NAME=(str, "local"),
@@ -63,7 +63,7 @@ LOGGER.debug("ENV:", ENV_FILE)
 print("ENV:", ENV_FILE)
 
 
-DEBUG = ENV("DEBUG")
+DEBUG = True #ENV("DEBUG")
 LOCAL_DEV = ENV("LOCAL_DEV")
 SERVICE_ACCOUNT_KEY = ENV("SERVICE_ACCOUNT_KEY")
 SECRET_KEY = ENV("SECRET_KEY")
@@ -274,13 +274,16 @@ INSTALLED_APPS = [
 # running in production. The URL will be known once you first deploy
 # to Cloud Run. This code takes the URL and converts it to both these settings formats.
 
-CLOUDRUN_SERVICE_URL = ENV("CLOUDRUN_SERVICE_URL").split(",") if ENV("CLOUDRUN_SERVICE_URL") != '' else ''  # type: ignore
+CLOUDRUN_SERVICE_URL = ENV("CLOUDRUN_SERVICE_URL").split(",") if ENV("CLOUDRUN_SERVICE_URL") != "" else ""  # type: ignore
 LOGGER.info(f"Cloud run url: {CLOUDRUN_SERVICE_URL}")
 CSRF_COOKIE_SECURE = False
-if CLOUDRUN_SERVICE_URL != '':
+if CLOUDRUN_SERVICE_URL != "":
     CSRF_COOKIE_SECURE = True
     ALLOWED_HOSTS = []
-    CSRF_TRUSTED_ORIGINS = []
+    CSRF_TRUSTED_ORIGINS = [
+        "https://iipa-32fdd.web.app",
+        "https://pic-pop-predict.web.app/",
+    ]
     CSRF_COOKIE_SAMESITE = "None"
     if SERVICE_URL_TAGS is not None:
         for tag in SERVICE_URL_TAGS:

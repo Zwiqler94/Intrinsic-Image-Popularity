@@ -2,17 +2,21 @@
 
 {% load django_bootstrap5 %} 
 
-{% block title %} IIPA: Your Results Are In! {% endblock %}
+{% block title%} IIPA: Your Results Are In! {% endblock %}
 
 {% block content%}
-    <div class="d-flex flex-column align-items-center justify-items-center p-5 card">
-      <div class="d-flex flex-column align-items-center justify-items-center p-5 card cardy">
-       <img src={{url}} class="img-fluid m-1">
-       <p class="fs-4"> Thanks here's your rating: {{ rating }} </p>
-       <button type="button" class="btn btn-primary" onclick="history.back()">
-          Try Again!
-        </button>
-      </div>
-      
+
+<div id="post-rate" class="d-flex flex-column align-items-center justify-content-center p-5">
+  <div>
+    <div
+      class="d-flex flex-column align-items-center justify-content-center p-5 card cardy"
+    >
+      <img src="{{url}}" class="img-fluid m-1" />
+      <p class="fs-4">Thanks here's your rating: {{ rating }}</p>
+      <button type="button" class="btn btn-primary" onclick="history.back()">
+        Try Again!
+      </button>
     </div>
+  </div>
+</div>
 {% endblock %}
