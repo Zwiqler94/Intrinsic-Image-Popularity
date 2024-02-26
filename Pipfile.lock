@@ -243,12 +243,12 @@
         },
         "google-auth": {
             "hashes": [
-                "sha256:42f707937feb4f5e5a39e6c4f343a17300a459aaf03141457ba505812841cc40",
-                "sha256:473a8dfd0135f75bb79d878436e568f2695dce456764bf3a02b6f8c540b1d256"
+                "sha256:25141e2d7a14bfcba945f5e9827f98092716e99482562f15306e5b026e21aa72",
+                "sha256:34fc3046c257cedcf1622fc4b31fc2be7923d9b4d44973d481125ecc50d83885"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.7'",
-            "version": "==2.25.2"
+            "version": "==2.28.1"
         },
         "google-cloud-appengine-logging": {
             "hashes": [
