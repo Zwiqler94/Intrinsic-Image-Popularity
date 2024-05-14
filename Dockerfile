@@ -1,7 +1,7 @@
 # Use the official lightweight Python image.
 # https://hub.docker.com/_/python
 # syntax=docker/dockerfile:experimental
-FROM python:3.10.13 as builder
+FROM python:3.10.14 as builder
 
 # Allow statements and log messages to immediately appear in the Knative logs
 ENV PYTHONUNBUFFERED True
@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=/home/root/.cache/pipenv pipenv install
 # # webserver, with one worker process and 8 threads.
 # # For environments with multiple CPU cores, increase the number of workers
 # # to be equal to the cores available.
-FROM python:3.10.13 as runtime
+FROM python:3.10.14 as runtime
 
 RUN pip install pipenv
 
