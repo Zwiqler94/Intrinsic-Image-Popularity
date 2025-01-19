@@ -14,24 +14,22 @@ import torchvision.models
 import torchvision.transforms as transforms
 
 
-import logging
-
-logger = logging.getLogger(__file__)
+LOGGER = settings.LOGGER
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-logger.debug(device.type)
-logger.debug(
+LOGGER.debug(device.type)
+LOGGER.debug(
     f'path: {os.path.join(os.getcwd(), "credential.json")}, creds: {settings.GS_CREDENTIALS}'
 )
-# logger.debug(f'GCP MODE: {settings.GCP_DEV}, su: {os.environ.get("DJANGO_SUPERUSER_PASSWORD")}, {os.environ.get("DJANGO_SUPERUSER_USERNAME")}')
-logger.debug(f"\n\n\nCSRF_ONLY:{settings.CSRF_COOKIE_SECURE} \n\n\n")
+# LOGGER.debug(f'GCP MODE: {settings.GCP_DEV}, su: {os.environ.get("DJANGO_SUPERUSER_PASSWORD")}, {os.environ.get("DJANGO_SUPERUSER_USERNAME")}')
+LOGGER.debug(f"\n\n\nCSRF_ONLY:{settings.CSRF_COOKIE_SECURE} \n\n\n")
 
 popularityDictionary = {}
 
 
 def prepare_image(image):
-    logger.debug("prepare")
+    LOGGER.debug("prepare")
     if image.mode != "RGB":
         image = image.convert("RGB")
     Transform = transforms.Compose(
@@ -42,18 +40,18 @@ def prepare_image(image):
     )
     image = Transform(image)
     image = image.unsqueeze(0)
-    logger.debug(image.to(device))
+    LOGGER.debug(image.to(device))
     return image.to(device)
 
 
 def predict(image, model):
-    logger.debug("predict")
+    LOGGER.debug("predict")
     image = prepare_image(image)
-    # logger.debug(image)
+    # LOGGER.debug(image)
     with torch.no_grad():
-        # logger.debug(model)
+        # LOGGER.debug(model)
         preds = model(image)
-        logger.debug(preds.item())
+        LOGGER.debug(preds.item())
     return round(preds.item(), 4)
 
 
@@ -97,7 +95,7 @@ def rateImages(model, paths):
 
 
 def setUpModelApp(modelPath):
-    logger.debug(modelPath)
+    LOGGER.debug(modelPath)
     model = torchvision.models.resnet50()
     # model.avgpool = nn.AdaptiveAvgPool2d(1) # for any size of the input
     model.fc = torch.nn.Linear(in_features=2048, out_features=1)
@@ -117,14 +115,14 @@ def processImage(popularityDictionary, model, path, processedPath):
 
 
 def getExtensionAndPath(path):
-    logger.debug("A path:" + path)
+    LOGGER.debug("A path:" + path)
     processedPath = os.path.abspath(os.curdir + "/IIPA/media" + path)
-    logger.debug("A.1 processed path" + processedPath)
+    LOGGER.debug("A.1 processed path" + processedPath)
     fileName = None
     fileExtension = None
     if os.path.isfile(processedPath):
         fileName, fileExtension = os.path.splitext(processedPath)
-        logger.debug(fileName, fileExtension)
+        LOGGER.debug(fileName, fileExtension)
     return processedPath, fileExtension
 
 
@@ -132,20 +130,20 @@ def loadModel(modelPath):
     try:
         model = setUpModelApp(os.path.abspath(modelPath))
     except Exception as err:
-        logger.debug(sys.exc_info())
+        LOGGER.debug(sys.exc_info())
         raise err
-    logger.debug("post model setup")
+    LOGGER.debug("post model setup")
     return model
 
 
 def convertDNGtoJPEG(processedPath):
     pydng = DNGConverter(processedPath, fast_load=True, debug=True)
-    path = async_to_sync(pydng.convert_file)(log=logger)
+    path = async_to_sync(pydng.convert_file)(log=LOGGER)
     return path
 
 
 def processImageGCP(popularityDictionary, model, path):
-    logger.debug(path)
+    LOGGER.debug(path)
     fileName, fileExtension = os.path.splitext(path)
     gStorage = storage.Client(credentials=settings.GS_CREDENTIALS)
     storageObj = gStorage._http.get(path)
@@ -157,7 +155,7 @@ def processImageGCP(popularityDictionary, model, path):
     else:
         image = Image.open(BytesIO(processedPath))
     prediction = predict(image, model)
-    logger.debug("prediction: " + str(prediction))
+    LOGGER.debug("prediction: " + str(prediction))
     popularityDictionary[path] = prediction
 
 
@@ -171,27 +169,26 @@ def processImageLocal(popularityDictionary, model, path):
             path = convertDNGtoJPEG(processedPath)
             image = processImage(popularityDictionary, model, path, processedPath)
         if image != None and settings.DEBUG == True:
-            logger.debug(image)
-            logger.debug(popularityDictionary)
-    
+            LOGGER.debug(image)
+            LOGGER.debug(popularityDictionary)
 
 
 def rateImagesApp(imagePath, modelPath):
-    logger.debug("In rateImagesApp")
+    LOGGER.debug("In rateImagesApp")
     try:
         popularityDictionary = {}
-        logger.debug(modelPath)
+        LOGGER.debug(modelPath)
         model = loadModel(modelPath)
         for path in imagePath:
             if settings.LOCAL_DEV:
                 processImageLocal(popularityDictionary, model, path)
             else:
                 processImageGCP(popularityDictionary, model, path)
-                # logger.debug(popularityDictionary.__str__())
+                LOGGER.debug(f"POP POP DICT: {popularityDictionary.__str__()}")
             return popularityDictionary
     except Exception as err:
-        logger.debug(sys.exc_info())
-        logger.debug(err)
+        LOGGER.debug(sys.exc_info())
+        LOGGER.debug(err)
         raise err
 
 

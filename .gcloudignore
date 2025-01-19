@@ -16,4 +16,6 @@ Intrinsic-Image-Popularity.code-workspace
 neeeeep.py
 README.md
 results.json
-old_stuff
+old_stuff/
+test-img/
+.scannerwork/

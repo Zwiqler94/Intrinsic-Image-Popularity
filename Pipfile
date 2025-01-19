@@ -15,7 +15,6 @@ requests = "*"
 wheel = "*"
 setuptools = "*"
 pip = "*"
-django = "*"
 gunicorn = "*"
 numpy = "*"
 sympy = "*"
@@ -23,20 +22,26 @@ django-environ = "*"
 google-auth = "*"
 google-cloud-secret-manager = "*"
 django-storages = {extras = ["google"], version = "*"}
-django-debug-toolbar = "*"
 uvicorn = "*"
 google-cloud-logging = "*"
-torch = {version = "!=2.0.1,!=2.1.0,>=2.0.0", index = "downloadpytorch"}
-torchvision = {version = "==0.15.1", index = "downloadpytorch"}
+torch = {version = "*", index = "downloadpytorch"}
+torchvision = {version = "*", index = "downloadpytorch"}
 aws-secretsmanager-caching = "*"
 botocore = "*"
 psycopg2 = "*"
 django-bootstrap5 = "*"
 python-dotenv = "*"
 pydngconverter = "*"
+boto3 = "*"
+django-debug-toolbar = "*"
+django = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 autopep8 = "*"
 
 [requires]
-python_version = "3.10"
+python_version = "3.12"
+
+[scripts]
+build = "op run --env-file=\"IIPA/.env\" -- sh -c  'echo  \"$SERVICE_ACCOUNT_KEY\" > unformatted_cred.json'  && TAG_NAME=$TAG_NAME docker compose build  && TAG_NAME=$TAG_NAME docker compose up"

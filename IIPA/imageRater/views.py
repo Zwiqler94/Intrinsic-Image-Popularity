@@ -1,29 +1,31 @@
 # -*- coding: utf-8 -*-
-from fileinput import filename
+
 from .rateImage import rateImagesApp, convertDNGtoJPEG
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_exempt
-from PIL import Image
+from django.views.decorators.http import require_http_methods
 import os
-from pydngconverter import DNGConverter, flags
 
-import logging
 
-logger = logging.getLogger(__file__)
-
+LOGGER = settings.LOGGER
 
 from .models import ImageRatingForm, ImageRating
 
 
 # Create your views here.
+@require_http_methods(["GET", "POST"])
 @xframe_options_exempt
 def rate_image(request):
-    logger.debug("in rate image" + settings.ENV("AWS_SECRET_KEY"))
+    LOGGER.debug(
+        "in rate image" + settings.ENV("AWS_SECRET_ACCESS_KEY")
+        if settings.ENV("AWS_SECRET_ACCESS_KEY") is not None
+        else "nope"
+    )
     if request.method == "POST":
-        logger.debug(request.FILES)
+        LOGGER.debug(request.FILES)
         form = ImageRatingForm(request.POST, request.FILES)
         file = form.files["image"]
         fileName, fileExt = os.path.splitext(file.name)
@@ -33,22 +35,25 @@ def rate_image(request):
                 form.files["images"] = InMemoryUploadedFile(
                     neep, "image", file.name, "image/png", neep.__sizeof__(), None
                 )
-        logger.debug(form.data)
-        logger.debug(form.errors)
+        LOGGER.debug(form.data)
+        LOGGER.debug(form.errors)
         if form.is_valid():
             # form.clean_image()
             i = form.save()
             a = ImageRating.objects.get(uuid=i.uuid)
-            logger.debug("A URL: " + i.image.url)
+            LOGGER.debug("A URL: " + i.image.url)
             a.rating_obj = rateImagesApp(
                 [i.image.url], os.path.abspath("./model/model-resnet50.pth")
+            )
+            LOGGER.debug(
+                f"Pop Dict: {a.rating_obj} \n {a.rating_obj.get(i.image.url)} "
             )
             a.url = i.image.url
             a.rated_img_name = i.image.name
             a.rated_value = float(a.rating_obj.get(i.image.url))  # type: ignore
-            logger.debug("rating: " + str(a.rated_value))
+            LOGGER.debug("rating: " + str(a.rated_value))
             a.save()
-            return HttpResponseRedirect(f"/{i.uuid}")  # type: ignore
+            return HttpResponseRedirect(f"/ratings/{i.uuid}")  # type: ignore
         else:
             return render(request, "imageRater/rater.html", {"form": form}, status=400)
     else:
@@ -68,6 +73,7 @@ def post_rate(request, ratingId):
     )
 
 
+@require_http_methods(["GET"])
 @xframe_options_exempt
 def privacy_policy(request):
     return render(request, "imageRater/privacy.html")
