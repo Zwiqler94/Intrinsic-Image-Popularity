@@ -20,4 +20,11 @@ skaffold.yaml
 unformatted_cred.json
 x.json
 old_stuff
-images/xyz.dng
+images/**
+test-img/
+IIPA/secret-*.txt
+.scannerwork/
+**/.DS_Store
+.DS_Store
+.DS_Store
+*.log

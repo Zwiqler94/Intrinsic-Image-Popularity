@@ -1,22 +1,19 @@
-# Use the official lightweight Python image.
-# https://hub.docker.com/_/python
-# syntax=docker/dockerfile:experimental
-FROM python:3.10.14 as builder
+FROM python:3.12.7 AS builder
+
 
 # Allow statements and log messages to immediately appear in the Knative logs
-ENV PYTHONUNBUFFERED True
-ARG AWS_ACCESS_KEY
-ARG AWS_SECRET_KEY
+ENV PYTHONUNBUFFERED=True
+# ARG AWS_ACCESS_KEY_ID
+# ARG AWS_SECRET_ACCESS_KEY
 ENV PIPENV_VENV_IN_PROJECT=1
 ENV PIPENV_CACHE_DIR=/home/root/.cache/pipenv
-ENV AWS_CONFIG_FILE /.aws/config
 
 RUN mkdir -pv -m 700 /iipa-workspace
-ENV APP_HOME /iipa-workspace
+ENV APP_HOME=/iipa-workspace
 WORKDIR $APP_HOME 
 
 
-ADD Pipfile.lock Pipfile ${APP_HOME}/
+COPY Pipfile.lock Pipfile ${APP_HOME}/
 WORKDIR $APP_HOME
 
 
@@ -25,48 +22,33 @@ RUN pip install pipenv
 RUN --mount=type=cache,target=/home/root/.cache/pipenv pipenv install
 
 
-# # Run the web service on container startup. Here we use the gunicorn
-# # webserver, with one worker process and 8 threads.
-# # For environments with multiple CPU cores, increase the number of workers
-# # to be equal to the cores available.
-FROM python:3.10.14 as runtime
+FROM python:3.12.7 AS runtime
 
-RUN pip install pipenv
-
-RUN mkdir -pv -m 700 /iipa-workspace 
-ENV APP_HOME /iipa-workspace
+RUN pip install pipenv && mkdir -pv -m 700 /iipa-workspace 
+ENV APP_HOME=/iipa-workspace
 WORKDIR $APP_HOME/
+
 
 COPY ./ $APP_HOME/
 
 
-# RUN mkdir -pv -m 700 .venv
-# RUN mkdir -pv -m 700 django-polls
-
 COPY --from=builder /iipa-workspace/.venv/ ${APP_HOME}/.venv/
-# COPY --from=builder /workspace/django-polls/ django-polls/ 
 
 
 WORKDIR $APP_HOME/IIPA
-# # RUN python manage.py flush --noinput
-# # RUN python manage.py migrate
-ENV GCP_DEV True
-ENV DEBUG False
-ENV LOCAL_ENV False
- 
-# RUN pip install --upgrade pip
-# RUN pipenv requirements > reqsA.txt
-# RUN grep -rl 'django-polls' requirements.txt | xargs sed 's/django-polls/\/django-polls/' > requirements.txt
-# RUN pip install -r requirements.txt
+ENV GCP_DEV=True
+ENV DEBUG=False
+ENV LOCAL_DEV=False
+ENV IS_BUILDING=True
 
-RUN ../.venv/bin/python manage.py makemigrations
-RUN ../.venv/bin/python manage.py migrate
-# ENV DJANGO_SUPERUSER_EMAIL jazwickler@gmail.com 
-# ENV DJANGO_SUPERUSER_USERNAME moose
+# RUN --mount=type=secret,id=aws_acc_key,env=AWS_ACCESS_KEY_ID \
+#     --mount=type=secret,id=aws_sec_key,env=AWS_SECRET_ACCESS_KEY \
+#     IS_BUILDING=True ../.venv/bin/python manage.py makemigrations
+     
+# RUN --mount=type=secret,id=aws_acc_key,env=AWS_ACCESS_KEY_ID \
+#     --mount=type=secret,id=aws_sec_key,env=AWS_SECRET_ACCESS_KEY \
+#     IS_BUILDING=True ../.venv/bin/python manage.py migrate
 
-# RUN ../.venv/bin/python manage.py createsuperuser --noinput
-
-
-CMD ["../.venv/bin/python", "-m", "gunicorn", "IIPA.asgi:application", "--bind" ,":8000" ,"--log-level", "debug", "--workers", "4","--timeout", "0" ,"-k", "uvicorn.workers.UvicornWorker" ,"-c", "gunicorn.conf.py"]
+CMD ["../.venv/bin/python", "-m", "gunicorn", "IIPA.asgi:application", "--bind" ,":8000" ,"--log-level", "debug", "--timeout", "100" ,"-k", "uvicorn.workers.UvicornWorker" ,"-c", "gunicorn.conf.py"]
 
 EXPOSE 8000

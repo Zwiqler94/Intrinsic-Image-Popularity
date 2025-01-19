@@ -11,10 +11,10 @@ steps:
         "PYTHONUNBUFFERED=True",
         "CLOUDRUN_SERVICE_URL=${_CLOUDRUN_SERVICE_URL}"
       ]
-    secretEnv: ["AWS_ACCESS_KEY", "AWS_SECRET_KEY"]
+    secretEnv: ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
     args: [
-        "--build-arg=AWS_ACCESS_KEY",
-        "--build-arg=AWS_SECRET_KEY",
+        "--build-arg=AWS_ACCESS_KEY_ID",
+        "--build-arg=AWS_SECRET_ACCESS_KEY",
         "--dockerfile=Dockerfile",
         "--destination=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest",
         "--destination=gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$TAG_NAME",
@@ -37,7 +37,7 @@ steps:
         "PYTHONUNBUFFERED=True",
         "CLOUDRUN_SERVICE_URL=${_CLOUDRUN_SERVICE_URL}"
       ]
-    secretEnv: ["DJANGO_SETTINGS", "AWS_ACCESS_KEY", "AWS_SECRET_KEY"]
+    secretEnv: ["DJANGO_SETTINGS", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"]
     args:
       [
         "-i",
@@ -47,9 +47,9 @@ steps:
         "-e",
         "GCP_DEV=True",
         "-e",
-        "AWS_ACCESS_KEY",
+        "AWS_ACCESS_KEY_ID",
         "-e",
-        "AWS_SECRET_KEY",
+        "AWS_SECRET_ACCESS_KEY",
         "--",
         "pipenv",
         "run",
@@ -63,9 +63,9 @@ steps:
 availableSecrets:
   secretManager:
     - versionName: projects/107006238575/secrets/AWS_ACCESS_KEY/versions/latest
-      env: "AWS_ACCESS_KEY"
+      env: "AWS_ACCESS_KEY_ID"
     - versionName: projects/107006238575/secrets/AWS_SECRET_KEY/versions/latest
-      env: "AWS_SECRET_KEY"
+      env: "AWS_SECRET_ACCESS_KEY"
     - versionName: projects/107006238575/secrets/django_settings/versions/latest
       env: "DJANGO_SETTINGS"
 substitutions:
